@@ -1,0 +1,10 @@
+pkg/
+bin/
+vendor/
+*~
+
+*.rdb
+*.out
+*.ts
+vendor
+go-hls
