@@ -103,9 +103,11 @@ func DownloadSegments(u, output string) error {
 		return nil
 	}
 
+	limiter := make(chan bool, 10)
 	for k, u := range urls {
 		wg.Add(1)
-		go tsDownload(u, output, k)
+		go tsDownload(u, output, k, limiter)
+		limiter <- true
 	}
 
 	wg.Wait()
@@ -113,15 +115,14 @@ func DownloadSegments(u, output string) error {
 }
 
 //多线程下载ts文件
-func tsDownload(tsFile string, savePath string, jobId int) bool {
-
-	time.Sleep(5)
-	fmt.Printf("id:%d, ts:%s, save to:%s\n", jobId, tsFile, savePath)
-	return false
-
+func tsDownload(tsFile string, savePath string, jobId int, limiter chan bool) bool {
 	defer wg.Done()
 
 	res, err := http.Get(tsFile)
+	time.Sleep(time.Second * 1)
+
+	<-limiter
+
 	if err != nil {
 		fmt.Printf("url:%s, error:%s\n", tsFile, err)
 		return false
