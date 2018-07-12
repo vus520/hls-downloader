@@ -18,23 +18,12 @@ var wg sync.WaitGroup
 
 // GetPlaylist fetch content from remote url and return a list of segments
 func GetPlaylist(url string) (*m3u8.MediaPlaylist, error) {
-	client := &http.Client{}
-	req, err := http.NewRequest("GET", url, nil)
+	t, err := FileGetContents(url)
 	if err != nil {
 		return nil, err
 	}
 
-	res, err := client.Do(req)
-
-	if err != nil {
-		return nil, err
-	}
-
-	if res.StatusCode != http.StatusOK {
-		return nil, nil
-	}
-
-	playlist, listType, err := m3u8.DecodeFrom(res.Body, true)
+	playlist, listType, err := m3u8.DecodeFrom(strings.NewReader(t), true)
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +78,7 @@ func BuildSegments(u string) ([]string, error) {
 	return urls, nil
 }
 
-func DownloadSegments(u, output string) error {
+func DownloadSegments(u, output string, thread int) error {
 	//读取ts文件列表
 	urls, err := BuildSegments(u)
 
@@ -103,11 +92,13 @@ func DownloadSegments(u, output string) error {
 		return nil
 	}
 
-	limiter := make(chan bool, 10)
+	limiter := make(chan bool, thread)
 	for k, u := range urls {
 		wg.Add(1)
-		go tsDownload(u, output, k, limiter)
+
 		limiter <- true
+		go tsDownload(u, output, k, limiter)
+
 	}
 
 	wg.Wait()
@@ -119,7 +110,7 @@ func tsDownload(tsFile string, savePath string, jobId int, limiter chan bool) bo
 	defer wg.Done()
 
 	res, err := http.Get(tsFile)
-	time.Sleep(time.Second * 1)
+	time.Sleep(time.Second * 2)
 
 	<-limiter
 
@@ -159,8 +150,8 @@ func tsDownload(tsFile string, savePath string, jobId int, limiter chan bool) bo
 }
 
 // Download hls segments into a single output file based on the remote index
-func Download(u, output string) error {
-	err := DownloadSegments(u, output)
+func Download(u, output string, thread int) error {
+	err := DownloadSegments(u, output, thread)
 	if err != nil {
 		return err
 	}

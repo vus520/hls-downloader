@@ -9,24 +9,27 @@ import (
 	"github.com/vus520/go-hls/hls"
 )
 
-// DownloadCli is the cli wrapper for download functionality
 func DownloadCli(c *cli.Context) error {
 	if c.String("url") == "" {
-		log.Fatal("url required")
+		log.Fatal("a m3u8 url or file is required")
 	}
 
 	if c.String("output") == "" {
-		log.Fatal("output required")
+		log.Fatal("output dir is srequired")
 	}
 
-	return hls.Download(c.String("url"), c.String("output"))
+	runtime.GOMAXPROCS(c.Int("procs"))
+
+	return hls.Download(c.String("url"), c.String("output"), c.Int("thread"))
 }
 
 func main() {
-
-	runtime.GOMAXPROCS(1)
-
 	app := cli.NewApp()
+
+	app.Name = "m3u8 downloader"
+	app.Usage = "A m3u8 playlist downloader"
+	app.Version = "20180712"
+
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:  "url",
@@ -34,17 +37,21 @@ func main() {
 		},
 		cli.StringFlag{
 			Name:  "output",
-			Usage: "path to output file",
-			Value: "output",
+			Usage: "dir to output file",
+			Value: "output/",
+		},
+		cli.IntFlag{
+			Name:  "procs",
+			Usage: "procs for procs.GOMAXPROCS",
+			Value: 1,
 		},
 		cli.IntFlag{
 			Name:  "thread",
 			Usage: "threads for download",
-			Value: 1,
+			Value: 10,
 		},
 	}
 
 	app.Action = DownloadCli
-
 	app.Run(os.Args)
 }
