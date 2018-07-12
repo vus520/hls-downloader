@@ -8,3 +8,4 @@ vendor/
 *.ts
 vendor
 go-hls
+output
