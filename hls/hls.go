@@ -109,6 +109,9 @@ func DownloadSegments(u, output string, thread int) error {
 func tsDownload(tsFile string, savePath string, jobId int, limiter chan bool) bool {
 	defer wg.Done()
 
+	//开始时间
+	s := time.Now().Unix()
+
 	res, err := http.Get(tsFile)
 	time.Sleep(time.Second * 2)
 
@@ -131,7 +134,7 @@ func tsDownload(tsFile string, savePath string, jobId int, limiter chan bool) bo
 
 	file := fmt.Sprintf("%s/%s", newPath, path.Base(uri.Path))
 
-	fmt.Printf("id:%d, ts:%s, save to:%s\n", jobId, uri, file)
+	fmt.Printf("id:%d, ts:%s, save to:%s, size:%d, use time:%d s\n", jobId, uri, file, res.ContentLength, time.Now().Unix()-s)
 
 	out, err := os.Create(file)
 	if err != nil {
