@@ -116,6 +116,8 @@ func DownloadSegments(u, output string, thread int) error {
 
 		if IsFile(killSignal) {
 			Warning.Println(killSignal + " exists, waiting job finish and go to kill")
+			wg.Wait()
+			Warning.Println("all job finish, killed")
 			return nil
 		}
 
@@ -148,7 +150,6 @@ func tsDownload(tsFile string, savePath string, jobId int, limiter chan bool) bo
 	s := time.Now().Unix()
 
 	res, err := http.Get(tsFile)
-	time.Sleep(time.Second * 2)
 
 	<-limiter
 
