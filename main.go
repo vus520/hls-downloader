@@ -28,7 +28,7 @@ func main() {
 
 	app.Name = "m3u8 downloader"
 	app.Usage = "A m3u8 playlist downloader in multithreading, touch /tmp/dlm3u8.stop to stop all the process."
-	app.Version = "20180712"
+	app.Version = "20180713"
 
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
