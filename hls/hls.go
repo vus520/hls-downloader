@@ -144,6 +144,7 @@ func tsDownload(tsFile string, savePath string, jobId int, limiter chan bool) bo
 	if IsFile(file) {
 		Info.Println(file + " exists, ignore.")
 		<-limiter
+		return true
 	}
 
 	//开始时间
